@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Usuario {
+  id            Int           @id @default(autoincrement())
+  nombre        String
+  apellido      String
+  cuit          String        @unique
+  email         String        @unique
+  passwordHash  String
+  fechaAlta     DateTime      @default(now())
+  activo        Boolean       @default(true)
+
+  monotributo   Monotributo?
+  facturas      Factura[]
+}
+
+model Monotributo {
+  id                   Int       @id @default(autoincrement())
+  usuarioId            Int       @unique
+  categoriaActual      String
+  tipoActividad        TipoActividad
+  fechaInicioCategoria DateTime
+  activo               Boolean   @default(true)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+}
+
+model Factura {
+  id           Int      @id @default(autoincrement())
+  usuarioId    Int
+  tipo         String
+  fechaEmision DateTime
+  montoTotal   Decimal
+  puntoVenta   Int
+  numero       Int
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+}
+
+model CategoriaMonotributo {
+  id            Int      @id @default(autoincrement())
+  categoria     String
+  tipoActividad TipoActividad
+  topeAnual     Decimal
+}
+
+model ResultadoRecategorizacion {
+  id                 Int      @id @default(autoincrement())
+  usuarioId          Int
+  facturacion12Meses Decimal
+  categoriaActual    String
+  categoriaSugerida  String?
+  porcentajeConsumo  Decimal
+  estado             EstadoRecategorizacion
+  alerta             AlertaRecategorizacion?
+  fechaCalculo       DateTime @default(now())
+}
+
+enum TipoActividad {
+  SERVICIOS
+  BIENES
+}
+
+enum EstadoRecategorizacion {
+  OK
+  RECATEGORIZAR
+  EXCLUSION
+}
+
+enum AlertaRecategorizacion {
+  PREVENTIVA
+}
